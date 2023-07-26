@@ -132,16 +132,40 @@ export const getStaticPaths: GetStaticPaths = async (ctx) => {
 
 	return {
 		paths: pokemons151.map((name) => ({params: {name}})),
-		fallback: false,
+		fallback: 'blocking',
 	};
 };
 
 export const getStaticProps: GetStaticProps = async ({params}) => {
 	const {name} = params as {name: string};
 
+	function contieneLetra(str: any) {
+		return /[a-zA-Z]/.test(str);
+	}
+
+	if (!contieneLetra(name)) {
+		return {
+			redirect: {
+				destination: '/',
+				permanent: false,
+			},
+		};
+	}
+
+	const pokemon = await getPokemonInfo(name);
+	if (!pokemon) {
+		return {
+			redirect: {
+				destination: '/',
+				permanent: false,
+			},
+		};
+	}
+
 	return {
 		props: {
 			pokemon: await getPokemonInfo(name),
+			revalidate: 86400,
 		},
 	};
 };
